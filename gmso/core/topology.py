@@ -1,8 +1,12 @@
 import warnings
 
 import numpy as np
+import os
 import unyt as u
 from boltons.setutils import IndexedSet
+import py3Dmol
+import tempfile
+import parmed as pmd
 
 from gmso.core.atom import Atom
 from gmso.core.bond import Bond
@@ -18,7 +22,7 @@ from gmso.core.improper_type import ImproperType
 from gmso.utils.connectivity import identify_connections as _identify_connections
 from gmso.utils._constants import ATOM_TYPE_DICT, BOND_TYPE_DICT, ANGLE_TYPE_DICT, DIHEDRAL_TYPE_DICT, IMPROPER_TYPE_DICT
 from gmso.exceptions import GMSOError
-
+from gmso import to_parmed
 
 class Topology(object):
     """A topology.
@@ -636,5 +640,101 @@ class Topology(object):
         descr.append('id: {}>'.format(id(self)))
 
         return ''.join(descr)
+
+    def visualize(self, show_ports=False,
+            backend='py3dmol', color_scheme={}): # pragma: no cover
+        """Visualize the Compound using py3dmol (default) or nglview.
+
+        Allows for visualization of a Compound within a Jupyter Notebook.
+
+        Parameters
+        ----------
+        show_ports : bool, optional, default=False
+            Visualize Ports in addition to Particles
+        backend : str, optional, default='py3dmol'
+            Specify the backend package to visualize compounds
+            Currently supported: py3dmol, nglview
+        color_scheme : dict, optional
+            Specify coloring for non-elemental particles
+            keys are strings of the particle names
+            values are strings of the colors
+            i.e. {'_CGBEAD': 'blue'}
+
+        """
+        viz_pkg = {'py3dmol': self._visualize_py3dmol}
+        """Need to inclue this run_from_ipython() fn
+        if run_from_ipython():
+            if backend.lower() in viz_pkg:
+                return viz_pkg[backend.lower()](show_ports=show_ports,
+                        color_scheme=color_scheme)
+            else:
+                raise RuntimeError("Unsupported visualization " +
+                        "backend ({}). ".format(backend) +
+                        "Currently supported backends include nglview and py3dmol")
+
+        else:
+            raise RuntimeError('Visualization is only supported in Jupyter '
+                               'Notebooks.')
+        """
+        return viz_pkg[backend.lower()](show_ports=show_ports,
+                        color_scheme=color_scheme)
+    def _visualize_py3dmol(self, show_ports=False, color_scheme={}):
+        """Visualize the Compound using py3Dmol.
+
+        Allows for visualization of a Compound within a Jupyter Notebook.
+
+        Parameters
+        ----------
+        show_ports : bool, optional, default=False
+            Visualize Ports in addition to Particles
+        color_scheme : dict, optional
+            Specify coloring for non-elemental particles
+            keys are strings of the particle names
+            values are strings of the colors
+            i.e. {'_CGBEAD': 'blue'}
+
+
+        Returns
+        ------
+        view : py3Dmol.view
+
+        """
+        """Need to include the import_ function
+        py3Dmol = import_('py3Dmol')
+        """
+
+        cloned = self
+        """Need to include deepcloning to make sure to not screw up the top object"""
+
+        modified_color_scheme = {}
+        for name, color in color_scheme.items():
+            # Py3dmol does some element string conversions,
+            # first character is as-is, rest of the characters are lowercase
+            new_name = name[0] + name[1:].lower()
+            modified_color_scheme[new_name] = color
+            modified_color_scheme[name] = color
+
+        for particle in cloned.sites:
+            if not particle.name:
+                particle.name = 'UNK'
+            print(particle.name)
+        tmp_dir = tempfile.mkdtemp()
+        pmd_struc = to_parmed.to_parmed(cloned)
+        pmd_struc.save(os.path.join(tmp_dir, 'tmp.mol2'))
+        pmd_struc.save(os.path.join('./', 'check.mol2'),overwrite=True)
+        
+        print('input color scheme: ',color_scheme)
+        print('modified color scheme: ',modified_color_scheme)
+        view = py3Dmol.view()
+        with open(os.path.join(tmp_dir, 'tmp.mol2'), 'r') as f:
+            view.addModel(f.read(), 'mol2', keepH=True)
+
+        view.setStyle({'stick': {'radius': 0.2,
+                                'color':'grey'},
+                        'sphere': {'scale': 0.3,
+                                    'colorscheme':modified_color_scheme}})
+        view.zoomTo()
+
+        return view
 
 
