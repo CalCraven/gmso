@@ -23,6 +23,7 @@ from gmso.utils.connectivity import identify_connections as _identify_connection
 from gmso.utils._constants import ATOM_TYPE_DICT, BOND_TYPE_DICT, ANGLE_TYPE_DICT, DIHEDRAL_TYPE_DICT, IMPROPER_TYPE_DICT
 from gmso.exceptions import GMSOError
 from gmso import to_parmed
+from mbuild.utils.io import run_from_ipython, import_
 
 class Topology(object):
     """A topology.

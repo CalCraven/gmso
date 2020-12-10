@@ -166,8 +166,10 @@ def _atom_types_from_gmso(top, structure, atom_map):
     for site in top.sites:
         #Assign atom_type to atom
         pmd_atom = atom_map[site]
-        pmd_atom.type = site.atom_type.name
-        pmd_atom.atom_type = atype_map[site.atom_type.name]
+        pmd_atom.type = site.name
+        #comment out so atom_type is saved as atom_name for py3dmol viewing
+        #pmd_atom.atom_type = atype_map[site.atom_type.name]
+        pmd_atom.atom_type = site.name
 
 def _bond_types_from_gmso(top, structure, bond_map):
     """Helper function to convert Topology BondType to Structure BondType
