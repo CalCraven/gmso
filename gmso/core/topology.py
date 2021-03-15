@@ -594,8 +594,12 @@ class Topology(object):
         """return a list of the angles that contain Site"""
 =======
         """Return a list of angles in this Topology that the site is a part of"""
+<<<<<<< HEAD
      
 >>>>>>> cbb547d9d85488764f4b03cf2e3656b1cd36e0a0
+=======
+
+>>>>>>> fee3df261a74e39977a5f5d51ca4abd408aca2db
         angles = []
         for angle in self.angles:
             if site in angle.connection_members:
@@ -663,10 +667,10 @@ class Topology(object):
             self._index_refs[ref][ref_member] = i
 
     def __repr__(self):
-        descr = list('<')
-        descr.append(self.name + ' ')
-        descr.append('{:d} sites, '.format(self.n_sites))
-        descr.append('{:d} connections, '.format(self.n_connections))
-        descr.append('id: {}>'.format(id(self)))
+        return f"<Topology {self.name}, {self.n_sites} sites,\n " \
+               f"{self.n_connections} connections,\n " \
+               f"{len(self.connection_types)} potentials,\n " \
+               f"id: {id(self)}>"
 
-        return ''.join(descr)
+    def __str__(self):
+        return f"<Topology {self.name}, {self.n_sites} sites, id: {id(self)}>"
