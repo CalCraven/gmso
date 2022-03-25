@@ -554,6 +554,8 @@ class Topology(object):
                     "Non-Potential {} found"
                     "in Connection {}".format(c.connection_type, c)
                 )
+            # ADDED
+            """
             elif c.connection_type not in self._connection_types:
                 c.connection_type.topology = self
                 self._connection_types[c.connection_type] = c.connection_type
@@ -586,6 +588,7 @@ class Topology(object):
                     c.connection_type = self._dihedral_types[c.connection_type]
                 if isinstance(c.connection_type, ImproperType):
                     c.connection_type = self._improper_types[c.connection_type]
+            """
 
     def add_pairpotentialtype(self, pairpotentialtype, update=True):
         """add a PairPotentialType to the topology
@@ -666,12 +669,16 @@ class Topology(object):
                 raise GMSOError(
                     "Non AtomType instance found in site {}".format(site)
                 )
-            elif site.atom_type not in self._atom_types:
+            # ADDED
+            """
+                elif site.atom_type not in self._atom_types:
                 site.atom_type.topology = self
                 self._atom_types[site.atom_type] = site.atom_type
                 self._atom_types_idx[site.atom_type] = len(self._atom_types) - 1
             elif site.atom_type in self._atom_types:
                 site.atom_type = self._atom_types[site.atom_type]
+            """
+            #
         self.is_typed(updated=True)
 
     def add_subtopology(self, subtop, update=True):
@@ -707,6 +714,9 @@ class Topology(object):
             self._typed = True
         else:
             self._typed = False
+        # ADDED
+        self._typed = True
+        #
         return self._typed
 
     def is_fully_typed(self, updated=False, group="topology"):
@@ -1078,3 +1088,39 @@ class Topology(object):
 
         loader = LoadersRegistry.get_callable(filename.suffix)
         return loader(filename, **kwargs)
+
+    def _generate_unique_bond_types(self):
+        """Create a set of unique_bond_types."""
+        unique_bonds = set()
+        for bond in self.bonds:
+            unique_bonds.add(bond.bond_type)
+        return unique_bonds
+
+    def _generate_unique_bond_types_params(self):
+        """Create a set of unique_bond_types."""
+        unique_bonds = set()
+        params = self.bonds[0].bond_type.parameters.keys()
+        for bond in self.bonds:
+            listed_vals = []
+            for key in params:
+                listed_vals.append(bond.bond_type.parameters[key].to_value())
+            unique_bonds.add(tuple(listed_vals))
+        return unique_bonds
+
+    def _generate_unique_types(self, attribute)
+        """Create a set of unique types from atom, bonds, angles, dihedrals"""
+        unique_types = set()
+        for attr in getattr(self, attribute):
+            unique_types.add(getattr(attr, attribute[:-1]+'_type'))
+        return unique_types
+
+    def _generate_unique_types_nohash(self, attribute)
+        """Create a set of unique types."""
+        unique_types = set()
+        params = getattr(getattr(self, attribute)[0], attribute[:-1]+'_type').parameters.keys()
+        for attr in getattr(self, attribute):
+            listed_vals = []
+            for key in params:
+                listed_vals.append(getattr(attr, attriute[:-1]+'_type').parameters[key].to_value())
+            unique_types.add(tuple(listed_vals))
+        return unique_bonds
