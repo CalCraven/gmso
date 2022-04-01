@@ -905,7 +905,8 @@ class Topology(object):
 
     def update_topology(self):
         """Update the entire topology."""
-        self.update_sites()
+        #ADDED
+        #self.update_sites()
         self.update_atom_types()
         self.update_connection_types()
         self.is_typed(updated=True)
@@ -1107,14 +1108,14 @@ class Topology(object):
             unique_bonds.add(tuple(listed_vals))
         return unique_bonds
 
-    def _generate_unique_types(self, attribute)
+    def _generate_unique_types(self, attribute):
         """Create a set of unique types from atom, bonds, angles, dihedrals"""
         unique_types = set()
         for attr in getattr(self, attribute):
             unique_types.add(getattr(attr, attribute[:-1]+'_type'))
         return unique_types
 
-    def _generate_unique_types_nohash(self, attribute)
+    def _generate_unique_types_nohash(self, attribute):
         """Create a set of unique types."""
         unique_types = set()
         params = getattr(getattr(self, attribute)[0], attribute[:-1]+'_type').parameters.keys()
@@ -1124,3 +1125,10 @@ class Topology(object):
                 listed_vals.append(getattr(attr, attriute[:-1]+'_type').parameters[key].to_value())
             unique_types.add(tuple(listed_vals))
         return unique_bonds
+
+    def get_residues(self):
+        unique_residues = set()
+        for site in self.sites:
+            unique_residues.add(site.residue_name)
+        return unique_residues
+
