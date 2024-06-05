@@ -23,7 +23,7 @@ from gmso.utils.connectivity import generate_pairs_lists
 
 
 @saves_as(".top")
-def write_top(top, filename, top_vars=None):
+def write_top(top, filename, use_site_charges=False, top_vars=None):
     """Write a gmso.core.Topology object to a GROMACS topology (.TOP) file.
 
     Parameters
@@ -32,6 +32,8 @@ def write_top(top, filename, top_vars=None):
         A typed Topology Object
     filename : str
         Path of the output file
+    use_site_charges : bool, default=False
+        When writing the charges to the top file, write the charge from site.charge instead of site.atom_type.charge.ß
 
     Notes
     -----
@@ -97,7 +99,7 @@ def write_top(top, filename, top_vars=None):
                     atom_type.name,
                     str(_lookup_atomic_number(atom_type)),
                     atom_type.mass.in_units(u.amu).value,
-                    atom_type.charge.in_units(u.elementary_charge).value,
+                    0.0000 if use_site_charges else atom_type.charge.in_units(u.elementary_charge).value,
                     "A",
                     atom_type.parameters["sigma"].in_units(u.nanometer).value,
                     atom_type.parameters["epsilon"].in_units(u.Unit("kJ/mol")).value,
@@ -161,7 +163,7 @@ def write_top(top, filename, top_vars=None):
                         tag,
                         site.atom_type.tags.get("element", site.element.symbol),
                         "1",  # TODO: care about charge groups
-                        site.atom_type.charge.in_units(u.elementary_charge).value,
+                        site.charge.in_units(u.elementary_charge).value if use_site_charges else site.atom_type.charge.in_units(u.elementary_charge).value,
                         site.atom_type.mass.in_units(u.amu).value,
                     )
                 )
