@@ -130,6 +130,7 @@ def to_dataframeDict(
                 "name",
                 f"{param[:-1]}_type.member_classes",
                 f"{param[:-1]}_type.parameters",
+
             ]
             for param in connectionsList
         }
@@ -138,7 +139,8 @@ def to_dataframeDict(
             "atom_type.name",
             "atom_type.parameters",
             "charge",
-            "mass",
+            "mass", 
+            "molecule.name",
         ]
         if isinstance(columns, list):
             columnsDict = {
@@ -169,6 +171,7 @@ def to_dataframeDict(
             "atom_type.parameters",
             "charge",
             "mass",
+            "molecule.name",
         ]
         remove_duplicatesBool = True
     elif format == "remove_duplicates":
@@ -270,8 +273,19 @@ def _parse_unyts_to_headers(dataList, columns) -> list:
 def _generate_component_lists(topology, parameter, columns) -> list:
     outList = []
     columnsList = []
+    #Customize warning message
+    def custom_formatwarning(msg, *args, **kwargs):
+        return str(msg) + '\n'
+
+    warnings.formatwarning = custom_formatwarning
+
     for column in columns:
-        valuesList = _recursive_getattr(topology, parameter, column)
+        try: 
+            valuesList = _recursive_getattr(topology, parameter, column)
+        except:
+            warnings.warn(f"Warning: Column '{column}' is not available for the parameter '{parameter}'", UserWarning)
+            continue
+            
         if isinstance(valuesList[0], dict):
             # add keys to columnsList and values to outList
             keys = list(valuesList[0].keys())
