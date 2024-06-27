@@ -273,12 +273,6 @@ def _parse_unyts_to_headers(dataList, columns) -> list:
 def _generate_component_lists(topology, parameter, columns) -> list:
     outList = []
     columnsList = []
-    #Customize warning message
-    def custom_formatwarning(msg, *args, **kwargs):
-        return str(msg) + '\n'
-
-    warnings.formatwarning = custom_formatwarning
-
     for column in columns:
         try: 
             valuesList = _recursive_getattr(topology, parameter, column)
