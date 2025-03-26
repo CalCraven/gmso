@@ -52,7 +52,16 @@ def write_prm(topology, filename, strict_potentials=False):
     Parmed stores rmin/2 in "rmin"
     """
     # Validation
-    # TODO: Use strict_x, (e.g. x=bonds) to validate what topology attrs   to convert
+    # TODO: Use strict_x, (e.g. x=bonds) to validate what topology attrs to convert
+    try:
+        assert topology._combining_rule == "lorentz"
+    except AttributeError:
+        raise AttributeError(
+            f"""Forcefield for Topology must have a _combining_rule attribute set to 'lorentz',
+            but is currently set to {topology._combining_rule}. This may indicate the forcefield
+            you are using is not compatible with CHARMM forcefield format. Please only override
+            `topology._combining_rule` if you are sure of the implications."""
+        )
     if not strict_potentials:
         templates = PotentialTemplateLibrary()
         lennard_jones_potential = templates["LennardJonesPotential"]
@@ -203,8 +212,18 @@ def write_prm(topology, filename, strict_potentials=False):
                     ),
                 )
             )
+        if write_nonbondedDict:
+            f.write("\nNONBONDED nbxmod 5 atom cdiel shift vatom vdistance vswitch -\n")
+            f.write(
+                f"cutnb {write_nonbondedDict.get('cutnb', 16.0)} "
+                f"ctofnb {write_nonbondedDict.get('ctofnb', 12.0)} "
+                f"ctonnb {write_nonbondedDict.get('ctonnb', 10.0)} "
+                f"eps {topology.scaling_factors[0][2]} "
+                f"e14fac {topology.scaling_factors[1][2]} "
+                f"wmin {write_nonbondedDict.get('wmin', 1.5)}\n"
+            )
 
-        f.write("\nNONBONDED\n")
+        # Mixing Parameters
         # columns: unique name, 0.0, epsilon, rmin/2, 0.0, epsilon 1-4, rmin/2 (1-4)
         # nonbonded14 = topology.scaling_factors[0][2]
 
@@ -228,8 +247,6 @@ def write_prm(topology, filename, strict_potentials=False):
                     ),
                 )
             )
-        # TODO: Add NONBONDED section: NONBONDED nbxmod  5 atom cdiel shift vatom vdistance vswitch -
-        # !adm jr., 5/08/91, suggested cutoff scheme
         f.write("\nEND")
 
 
