@@ -260,6 +260,8 @@ class PotentialExpression:
         """Check to see that an expression is a valid sympy expression."""
         if expression is None or isinstance(expression, sympy.Expr):
             pass
+        elif expression == "":  # store as empty string
+            pass
         elif isinstance(expression, str):
             expression = sympy.sympify(expression)
         else:
@@ -312,6 +314,8 @@ class PotentialExpression:
             indep_vars = {sympy.symbols(indep_vars)}
         elif isinstance(indep_vars, sympy.Symbol):
             indep_vars = {indep_vars}
+        elif indep_vars == set() or indep_vars == []:
+            pass
         elif isinstance(indep_vars, (list, set)):
             if all([isinstance(val, sympy.Symbol) for val in indep_vars]):
                 pass
@@ -394,6 +398,8 @@ class PotentialExpression:
     @lru_cache(maxsize=128)
     def _verify_validity(expression, independent_variables_symbols, parameters=None):
         """Verify whether or not the parameters, independent_variables and expression are consistent."""
+        if expression == "" and not independent_variables_symbols and not parameters:
+            return  # assume an empty atomtype
         for sym in independent_variables_symbols:
             if sym not in expression.free_symbols:
                 raise ValueError(

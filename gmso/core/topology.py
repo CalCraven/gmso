@@ -225,7 +225,7 @@ class Topology(object):
     @combining_rule.setter
     def combining_rule(self, rule):
         """Set the combining rule for the topology."""
-        if rule not in ["lorentz", "geometric"]:
+        if rule not in ["None", "lorentz", "geometric"]:
             raise GMSOError("Combining rule must be `lorentz` or `geometric`")
         self._combining_rule = rule
 
@@ -384,7 +384,7 @@ class Topology(object):
             An iterator of the atom_types in the system filtered according to the
             filter function supplied.
         """
-        if include_virtual_types:
+        if include_virtual_types:  # TODO: include_virtual_types flag won't work
             return TopologyPotentialView(
                 itertools.chain(self._sites, self._virtual_sites)
             )
@@ -1420,7 +1420,8 @@ class Topology(object):
         gmso.abc.abstract_site.Site
             The site where getattr(site, key) == value
         """
-
+        if key in None and value is None:
+            yield itertools.chain(self._sites, self.virtual_sites)
         if key not in Site.__iterable_attributes__:
             raise ValueError(
                 f"`{key}` is not an iterable attribute for Site. "

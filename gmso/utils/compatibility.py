@@ -111,6 +111,9 @@ def check_compatibility(
 
 def _check_single_potential(potential, accepted_potentials):
     """Check to see if a single given potential is in the list of accepted potentials."""
+    if None in accepted_potentials:  # accept that the potential won't be used
+        if isinstance(potential, str) or potential.expression == "":
+            return {potential: None}
     ind_var = potential.independent_variables
     u_dims = [
         symplify_str_eqn(para.units.dimensions)
@@ -131,11 +134,7 @@ def _check_single_potential(potential, accepted_potentials):
             if str(ref.expression) == str(potential.expression):
                 return {potential: ref.name}
             else:
-                if (
-                    symengine.expand(ref.expression - potential.expression)
-                    # sympy.simplify(ref.expression - potential.expression)
-                    == 0
-                ):
+                if symengine.expand(ref.expression - potential.expression) == 0:
                     return {potential: ref.name}
     return False
 
